@@ -69,36 +69,3 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
     );
   }
 }
-
-// PreferredSize(
-//             preferredSize: Size(width, height / 3.5),
-//             child: Stack(
-//               children: <Widget>[
-                  // child: Align(
-//                     alignment: Alignment.topCenter,
-//                     child:
-//                   ),
-//                 ),
-//                 Align(
-//                   alignment: Alignment(0, 1),
-//                   child: Container(
-//                     width: 50.0,
-//                     height: 50.0,
-//                     child: Icon(
-//                       Icons.add,
-//                       color: Colors.white,
-//                       size: 50.0,
-//                     ),
-//                     decoration: BoxDecoration(
-//                         shape: BoxShape.circle, color: Colors.red),
-//                   ),
-//                 ),
-//                 Align(
-//                     alignment: Alignment(-0.75, 0),
-//                     child: Text(
-//                       "Intray",
-//                       style: TextStyle(
-//                           fontSize: 40.0, fontWeight: FontWeight.bold),
-//                     ))
-//               ],
-//             )),

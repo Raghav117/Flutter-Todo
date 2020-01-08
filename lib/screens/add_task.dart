@@ -2,20 +2,52 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:to_do/models/database.dart';
+import 'package:to_do/models/tiles.dart';
 
 class Add extends StatefulWidget {
+  final String image;
+  final String title, description;
+  final bool priority;
+  final bool s;
+  final int id;
+  final bool completed;
+
+  Add(
+      {Key key,
+      this.image,
+      this.title,
+      this.description,
+      this.priority,
+      this.s, this.id, this.completed});
+
   @override
-  _AddState createState() => _AddState();
+  _AddState createState() => _AddState(
+      this.image, this.title, this.description, this.priority, this.s,this.id,this.completed);
 }
 
 class _AddState extends State<Add> {
-  File _image;
   final _formKey = GlobalKey<FormState>();
+  final bool s;
+  final int id;
 
+  String image;
   String title, description;
+  bool priority;
+  File _image;
+
+  final bool completed;
+  @override
+  void initState() {
+    super.initState();
+    if (image != "null") _image = File(image);
+  }
 
   int c;
+
   TextStyle _t = TextStyle(color: Colors.red);
+
+  _AddState(this.image, this.title, this.description, this.priority, this.s, this.id, this.completed);
 
   Future getImage(int c) async {
     var image = c == 1
@@ -30,7 +62,6 @@ class _AddState extends State<Add> {
   @override
   Widget build(BuildContext context) {
     var height = MediaQuery.of(context).size.height;
-    // var width = MediaQuery.of(context).size.width;
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.red,
@@ -64,6 +95,7 @@ class _AddState extends State<Add> {
                           padding: EdgeInsets.only(
                               bottom: 40.0, left: 10.0, right: 10.0),
                           child: TextFormField(
+                            initialValue: title,
                             onChanged: (value) {
                               title = value;
                             },
@@ -91,6 +123,7 @@ class _AddState extends State<Add> {
                           padding: EdgeInsets.only(
                               bottom: 40.0, left: 10.0, right: 10.0),
                           child: TextFormField(
+                            initialValue: description,
                             onChanged: (value) {
                               description = value;
                             },
@@ -184,9 +217,12 @@ class _AddState extends State<Add> {
                             IconButton(
                               icon: Icon(
                                 Icons.radio_button_checked,
-                                color: Colors.red,
+                                color: priority ? Colors.red : Colors.black,
                               ),
-                              onPressed: () {},
+                              onPressed: () {
+                                priority = !priority;
+                                setState(() {});
+                              },
                             ),
                           ],
                         ),
@@ -197,8 +233,11 @@ class _AddState extends State<Add> {
                         ),
 
                         RaisedButton(
-                          child: Text("Save",
-                              style: TextStyle(color: Colors.white)),
+                          child: s
+                              ? Text("Save",
+                                  style: TextStyle(color: Colors.white))
+                              : Text("Update",
+                                  style: TextStyle(color: Colors.white)),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(10)),
                           color: Colors.red,
@@ -206,8 +245,35 @@ class _AddState extends State<Add> {
                             if (this._formKey.currentState.validate()) {
                               setState(() {
                                 this._formKey.currentState.save();
-                                // print("Save $title");
+                                // print("Save $_image");
+                                if(s){
+                                DBProvider.db.insert(Tile(
+                                    description: description,
+                                    title: title,
+                                    image: _image != null
+                                        ? "//" +
+                                            _image.toString().substring(
+                                                7, _image.toString().length - 1)
+                                        : "null",
+                                    priority: priority,
+                                    completed: false));
+                                }
+                                else{
+                                  DBProvider.db.update(Tile.withId(
+                                    title: title,
+                                    description: description,
+                                    id: id,
+                                    image: _image != null
+                                        ? "//" +
+                                            _image.toString().substring(
+                                                7, _image.toString().length - 1)
+                                        : "null",
+                                    priority: priority,
+                                    completed: completed
+                                  ));
+                                }
                               });
+                              Navigator.of(context).pop();
                             }
                           },
                         )
