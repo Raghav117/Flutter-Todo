@@ -1,6 +1,6 @@
-# to_do
+# Flutter Todo
 
-A new Flutter project.
+Used to maintain Todo list.
 
 ## Getting Started
 
