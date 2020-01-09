@@ -1,5 +1,5 @@
-
 import 'package:flutter/material.dart';
+import 'package:to_do/models/bloc.dart';
 import 'package:to_do/models/database.dart';
 import 'package:to_do/models/tiles.dart';
 import 'add_task.dart';
@@ -10,63 +10,89 @@ class Home extends StatefulWidget {
 }
 
 class _HomeState extends State<Home> {
+  List<Tile> tiles;
+  bool c;
+  TileBloc bloc;
+
+  @override
+  void dispose() {
+    bloc.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
+    print("init");
+    bloc = TileBloc();
+    bloc.getTile();
+
+    c = true;
+    getList();
+
     super.initState();
+  }
+
+  getList() async {
+    await bloc.tiles.listen(
+      (data) {
+        tiles = data;
+        // print(tiles);
+        // print("yeah");
+        setState(() {});
+      },
+      onDone: () {
+        // print("Yeah");
+      },
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     var width = MediaQuery.of(context).size.width;
     var height = MediaQuery.of(context).size.height;
+
     return Theme(
       data: ThemeData(canvasColor: Colors.transparent),
       child: Stack(
         children: <Widget>[
           Padding(
-              padding: EdgeInsets.only(top: height / 7),
-              child: FutureBuilder(
-                future: DBProvider.db.display(),
-                builder: (BuildContext context, AsyncSnapshot snapshot) {
-                  if (snapshot.hasData) {
-                    if (snapshot.data.length != 0)
-                      return ReorderableListView(
+            padding: EdgeInsets.only(top: height / 7),
+            child: tiles != null
+                ? (tiles.length != 0
+                    ? ReorderableListView(
                         padding: EdgeInsets.only(top: 50),
-                        children: List.generate(snapshot.data.length, (index) {
-                          Tile t = snapshot.data[index];
+                        children: List.generate(tiles.length, (index) {
+                          Tile t = tiles[index];
                           print(t.id);
-                          return Padding(
+                          return Dismissible(
                             key: ValueKey("value$index"),
-                            padding: const EdgeInsets.only(
-                                bottom: 15, left: 10, right: 10),
-                            child: Container(
-                              height: 100.0,
-                              width: width,
-                              child: ListTile(
-                                onLongPress: (){
-                                  showDialog(
-                                    context: context,
-                                    child: AlertDialog(
-                                      actions: <Widget>[
-                                        RaisedButton(
-                                          child: Text("data"),
-                                        ),
-                                        RaisedButton(
-                                          child: Text("data"),
-
-                                        ),
-                                        RaisedButton(
-                                          child: Text("data"),
-
-                                        ),
-                                      ],
-                                    )
-                                  );
-                                },
-                                onTap: (){
-                                  Navigator.of(context).push(MaterialPageRoute(
-                                    builder: (BuildContext context){
+                            onDismissed: (direction) {
+                              int i = index;
+                              for (i = t.id; i < tiles.length; ++i) {
+                                Tile t2 = tiles[i];
+                                t2.id = i;
+                                bloc.updateWithId(t2, i);
+                              }
+                              bloc.delete(tiles.length);
+                            },
+                            background: Container(
+                              child: Icon(Icons.delete),
+                              decoration: BoxDecoration(
+                                borderRadius: BorderRadius.circular(20.0),
+                                color: Colors.grey,
+                              ),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                  bottom: 15, left: 10, right: 10),
+                              child: Container(
+                                height: 100.0,
+                                width: width,
+                                child: ListTile(
+                                  onTap: () {
+                                    Navigator.of(context).push(
+                                        MaterialPageRoute(
+                                            builder: (BuildContext context) {
                                       return Add(
                                         description: t.description,
                                         image: t.image,
@@ -76,59 +102,48 @@ class _HomeState extends State<Home> {
                                         id: t.id,
                                         completed: t.completed,
                                       );
-                                    }
-                                  ));
-                                },
-                                title: Text(
-                                  t.title,
-                                  style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 20),
-                                ),
-                                leading: IconButton(
-                                  icon: Icon(
-                                    Icons.radio_button_checked,
-                                    color: t.priority
-                                        ? Color(0xFFFFD700)
-                                        : Colors.black,
+                                    }));
+                                  },
+                                  title: Text(
+                                    t.title,
+                                    style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 20),
                                   ),
-                                  onPressed: () {
-                                    t.priority = !t.priority;
-                                    DBProvider.db.update(t);
-                                    setState(() {
-                                    });
-                                  },
-                                ),
-                                trailing:
-                                    IconButton(
-                                      icon: Icon(Icons.check_circle_outline),
-                                      color: t.completed
-                                        ? Color(0xFFFFD700)
-                                        : Colors.black,
-                                  onPressed: () {
-                                    t.completed = !t.completed;
-                                    DBProvider.db.update(t);
-                                    setState(() {
-                                    });
-                                  },
+                                  leading: IconButton(
+                                    icon: Icon(
+                                      Icons.radio_button_checked,
+                                      color: t.priority
+                                          ? Color(0xFFFFD700)
+                                          : Colors.black,
                                     ),
-                                    
-                                    // t.image != "null"
-                                    //     ? Image.file(File(t.image),
-                                    //         fit: BoxFit.fitHeight)
-                                    //     : Container(),
-                                  
-                                subtitle: Text(
-                                  t.description,
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.bold,
+                                    onPressed: () {
+                                      t.priority = !t.priority;
+                                      bloc.update(t);
+                                    },
                                   ),
+                                  trailing: IconButton(
+                                    icon: Icon(Icons.check_circle_outline),
+                                    color: t.completed
+                                        ? Color(0xFFFFD700)
+                                        : Colors.black,
+                                    onPressed: () {
+                                      t.completed = !t.completed;
+                                      bloc.update(t);
+                                    },
+                                  ),
+                                  subtitle: Text(
+                                    t.description,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  isThreeLine: true,
                                 ),
-                                isThreeLine: true,
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(10.0),
+                                    color: Colors.red),
                               ),
-                              decoration: BoxDecoration(
-                                  borderRadius: BorderRadius.circular(10.0),
-                                  color: Colors.red),
                             ),
                           );
                         }),
@@ -139,21 +154,19 @@ class _HomeState extends State<Home> {
                             _updateMyItems(oldIndex, newIndex);
                           });
                         },
-                      );
-                    else
-                      return Center(
-                          child: Text(
-                        "Add to insert your task",
-                        style: TextStyle(color: Colors.white),
-                      ));
-                  } else
-                    return Center(
+                      )
+                    : Center(
                         child: Text(
-                      "Add to insert your task",
-                      style: TextStyle(color: Colors.white),
-                    ));
-                },
-              )),
+                          "Add to insert item",
+                          style: TextStyle(color: Colors.white),
+                        ),
+                      ))
+                : Center(
+                    child: CircularProgressIndicator(
+                      backgroundColor: Colors.red,
+                    ),
+                  ),
+          ),
           Container(
             width: width,
             height: height / 6,
@@ -183,7 +196,7 @@ class _HomeState extends State<Home> {
                     image: "null",
                     priority: false,
                     s: true,
-                    id: 0,
+                    id: tiles.length + 1,
                     completed: false,
                   ),
                 ));
@@ -208,8 +221,34 @@ class _HomeState extends State<Home> {
   }
 
   void _updateMyItems(int oldIndex, int newIndex) {
-    if (newIndex > oldIndex) {
-      newIndex -= 1;
+  int i;    
+    
+    if(oldIndex<newIndex){
+      --newIndex;
+      Tile t2 = tiles[oldIndex];
+      for(i=oldIndex+1;i<=newIndex;++i){
+        Tile t3 = tiles[i];
+        t3.id = i;
+        DBProvider.db.updateWithId(t3, i);
+        // bloc.updateWithId(t3, i);
+      }
+      t2.id = i;
+      bloc.updateWithId(t2, i);
+    }
+    else if(oldIndex>newIndex){
+      Tile t2 = tiles[oldIndex];
+      for(i=oldIndex-1;i>=newIndex;--i){
+        Tile t3 = tiles[i];
+        ++t3.id;
+        DBProvider.db.updateWithId(t3, i+2);
+
+        // bloc.updateWithId(t3, i+2);
+      }
+      t2.id = newIndex+1;
+      bloc.updateWithId(t2, newIndex+1);
+    
+
+
     }
 
 }

@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:to_do/models/database.dart';
+import 'package:to_do/models/bloc.dart';
 import 'package:to_do/models/tiles.dart';
 
 class Add extends StatefulWidget {
@@ -19,11 +19,13 @@ class Add extends StatefulWidget {
       this.title,
       this.description,
       this.priority,
-      this.s, this.id, this.completed});
+      this.s,
+      this.id,
+      this.completed});
 
   @override
-  _AddState createState() => _AddState(
-      this.image, this.title, this.description, this.priority, this.s,this.id,this.completed);
+  _AddState createState() => _AddState(this.image, this.title, this.description,
+      this.priority, this.s, this.id, this.completed);
 }
 
 class _AddState extends State<Add> {
@@ -47,7 +49,8 @@ class _AddState extends State<Add> {
 
   TextStyle _t = TextStyle(color: Colors.red);
 
-  _AddState(this.image, this.title, this.description, this.priority, this.s, this.id, this.completed);
+  _AddState(this.image, this.title, this.description, this.priority, this.s,
+      this.id, this.completed);
 
   Future getImage(int c) async {
     var image = c == 1
@@ -246,31 +249,32 @@ class _AddState extends State<Add> {
                               setState(() {
                                 this._formKey.currentState.save();
                                 // print("Save $_image");
-                                if(s){
-                                DBProvider.db.insert(Tile(
-                                    description: description,
-                                    title: title,
-                                    image: _image != null
-                                        ? "//" +
-                                            _image.toString().substring(
-                                                7, _image.toString().length - 1)
-                                        : "null",
-                                    priority: priority,
-                                    completed: false));
-                                }
-                                else{
-                                  DBProvider.db.update(Tile.withId(
-                                    title: title,
-                                    description: description,
-                                    id: id,
-                                    image: _image != null
-                                        ? "//" +
-                                            _image.toString().substring(
-                                                7, _image.toString().length - 1)
-                                        : "null",
-                                    priority: priority,
-                                    completed: completed
-                                  ));
+                                if (s) {
+                                  TileBloc().add(Tile.withId(
+                                      description: description,
+                                      title: title,
+                                      id: id,
+                                      image: _image != null
+                                          ? "//" +
+                                              _image.toString().substring(7,
+                                                  _image.toString().length - 1)
+                                          : "null",
+                                      priority: priority,
+                                      completed: false));
+                                } else {
+                                  var result = TileBloc().update(Tile.withId(
+                                      title: title,
+                                      description: description,
+                                      id: id,
+                                      image: _image != null
+                                          ? "//" +
+                                              _image.toString().substring(7,
+                                                  _image.toString().length - 1)
+                                          : "null",
+                                      priority: priority,
+                                      completed: completed));
+
+                                  print(result);
                                 }
                               });
                               Navigator.of(context).pop();
