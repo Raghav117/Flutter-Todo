@@ -36,13 +36,9 @@ class _HomeState extends State<Home> {
     await bloc.tiles.listen(
       (data) {
         tiles = data;
-        // print(tiles);
-        // print("yeah");
         setState(() {});
       },
-      onDone: () {
-        // print("Yeah");
-      },
+      onDone: () {},
     );
   }
 
@@ -67,13 +63,44 @@ class _HomeState extends State<Home> {
                           return Dismissible(
                             key: ValueKey("value$index"),
                             onDismissed: (direction) {
-                              int i = index;
-                              for (i = t.id; i < tiles.length; ++i) {
-                                Tile t2 = tiles[i];
-                                t2.id = i;
-                                bloc.updateWithId(t2, i);
-                              }
-                              bloc.delete(tiles.length);
+                              showDialog(
+                                  context: context,
+                                  child: AlertDialog(
+                                    content: Text("You really want to Delete",
+                                        style: TextStyle(
+                                            color: Colors.black,
+                                            fontWeight: FontWeight.bold)),
+                                    backgroundColor: Colors.white,
+                                    actions: <Widget>[
+                                      FlatButton(
+                                        child: Text("Yes",
+                                            style: TextStyle(
+                                                color: Colors.red,
+                                                fontWeight: FontWeight.bold)),
+                                        onPressed: () {
+                                          int i = index;
+                                          for (i = t.id;
+                                              i < tiles.length;
+                                              ++i) {
+                                            Tile t2 = tiles[i];
+                                            t2.id = i;
+                                            bloc.updateWithId(t2, i);
+                                          }
+                                          bloc.delete(tiles.length);
+                                          Navigator.of(context).pop();
+                                        },
+                                      ),
+                                      FlatButton(
+                                          child: Text("No",
+                                              style: TextStyle(
+                                                  color: Colors.red,
+                                                  fontWeight: FontWeight.bold)),
+                                          onPressed: () {
+                                            Navigator.of(context).pop();
+                                            setState(() {});
+                                          }),
+                                    ],
+                                  ));
                             },
                             background: Container(
                               child: Icon(Icons.delete),
@@ -108,6 +135,10 @@ class _HomeState extends State<Home> {
                                     t.title,
                                     style: TextStyle(
                                         fontWeight: FontWeight.bold,
+                                        fontStyle: FontStyle.italic,
+                                        decoration: t.completed
+                                            ? TextDecoration.lineThrough
+                                            : TextDecoration.none,
                                         fontSize: 20),
                                   ),
                                   leading: IconButton(
@@ -221,35 +252,27 @@ class _HomeState extends State<Home> {
   }
 
   void _updateMyItems(int oldIndex, int newIndex) {
-  int i;    
-    
-    if(oldIndex<newIndex){
+    int i;
+
+    if (oldIndex < newIndex) {
       --newIndex;
       Tile t2 = tiles[oldIndex];
-      for(i=oldIndex+1;i<=newIndex;++i){
+      for (i = oldIndex + 1; i <= newIndex; ++i) {
         Tile t3 = tiles[i];
         t3.id = i;
         DBProvider.db.updateWithId(t3, i);
-        // bloc.updateWithId(t3, i);
       }
       t2.id = i;
       bloc.updateWithId(t2, i);
-    }
-    else if(oldIndex>newIndex){
+    } else if (oldIndex > newIndex) {
       Tile t2 = tiles[oldIndex];
-      for(i=oldIndex-1;i>=newIndex;--i){
+      for (i = oldIndex - 1; i >= newIndex; --i) {
         Tile t3 = tiles[i];
         ++t3.id;
-        DBProvider.db.updateWithId(t3, i+2);
-
-        // bloc.updateWithId(t3, i+2);
+        DBProvider.db.updateWithId(t3, i + 2);
       }
-      t2.id = newIndex+1;
-      bloc.updateWithId(t2, newIndex+1);
-    
-
-
+      t2.id = newIndex + 1;
+      bloc.updateWithId(t2, newIndex + 1);
     }
-
-}
+  }
 }

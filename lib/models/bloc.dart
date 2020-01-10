@@ -22,7 +22,12 @@ class TileBloc {
     if (_tileController.isClosed) {
       _tileController = StreamController<List<Tile>>.broadcast();
     }
-    _tileController.sink.add(await DBProvider.db.display());
+    try {
+      _tileController.sink.add(await DBProvider.db.display());
+    } catch (e) {
+      _tileController = StreamController<List<Tile>>.broadcast();
+      _tileController.sink.add(await DBProvider.db.display());
+    }
   }
 
   delete(int id) {

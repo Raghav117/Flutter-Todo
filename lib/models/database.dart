@@ -13,7 +13,6 @@ class DBProvider {
   Future<Database> get database async {
     if (_database != null) return _database;
 
-    // if _database is null we instantiate it
     _database = await initDB();
     return _database;
   }
@@ -43,6 +42,22 @@ class DBProvider {
   display() async {
     final db = await database;
     var res = await db.query("ToDo");
+    List<Tile> list =
+        res.isNotEmpty ? res.map((c) => Tile.fromMap(c)).toList() : [];
+    return list;
+  }
+
+  displayCompleted() async {
+    final db = await database;
+    var res = await db.rawQuery('SELECT * FROM ToDo WHERE completed = 1');
+    List<Tile> list =
+        res.isNotEmpty ? res.map((c) => Tile.fromMap(c)).toList() : [];
+    return list;
+  }
+
+  displayUncompleted() async {
+    final db = await database;
+    var res = await db.rawQuery('SELECT * FROM ToDo WHERE NOT completed = 1');
     List<Tile> list =
         res.isNotEmpty ? res.map((c) => Tile.fromMap(c)).toList() : [];
     return list;

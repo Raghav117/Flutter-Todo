@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:to_do/screens/complete.dart';
 import 'package:to_do/screens/home.dart';
+import 'package:to_do/screens/uncomplete.dart';
 
 void main() => runApp(MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: "TO Do",
       home: MyApp(),
     ));
@@ -16,14 +19,12 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
 
   @override
   void initState() {
-    _tcontroller = TabController(length: 3, initialIndex: 0, vsync: this);
+    _tcontroller = TabController(length: 3, initialIndex: 1, vsync: this);
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    var height = MediaQuery.of(context).size.height;
-    var width = MediaQuery.of(context).size.width;
     return SafeArea(
       child: Scaffold(
         backgroundColor: Colors.black,
@@ -36,13 +37,13 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
             controller: _tcontroller,
             tabs: <Widget>[
               Tab(
+                child: Icon(Icons.sentiment_very_satisfied),
+              ),
+              Tab(
                 child: Icon(Icons.home),
               ),
               Tab(
-                child: Icon(Icons.compare),
-              ),
-              Tab(
-                child: Icon(Icons.accessibility),
+                child: Icon(Icons.sentiment_dissatisfied),
               ),
             ],
           ),
@@ -51,19 +52,7 @@ class _MyAppState extends State<MyApp> with SingleTickerProviderStateMixin {
         ),
         body: TabBarView(
           controller: _tcontroller,
-          children: <Widget>[
-            Home(),
-            Container(
-              height: height,
-              width: width,
-              color: Colors.green,
-            ),
-            Container(
-              height: height / 4,
-              width: width,
-              color: Colors.red,
-            ),
-          ],
+          children: <Widget>[Complete(), Home(), UnComplete()],
         ),
       ),
     );
